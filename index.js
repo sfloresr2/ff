@@ -268,7 +268,7 @@ app.post('/api/eliminar_proveedorimpo', (req, res) => { // Define una ruta POST 
 })//Fin del POST
 
 //API eliminar clientes Vehiculos POST
-app.post('/api/eliminar_clienteimpo', (req, res) => { // Define una ruta POST en '/api/eliminar_proveedorimpo' para manejar solicitudes de eliminación de proveedores de importación.
+app.post('/api/eliminar_clientesimpo', (req, res) => { // Define una ruta POST en '/api/eliminar_proveedorimpo' para manejar solicitudes de eliminación de proveedores de importación.
     const { id } = req.body// Extrae el ID del proveedor del cuerpo de la solicitud.
     var connection = mysql.createConnection(credentials)// Crea una nueva conexión a la base de datos utilizando las credenciales.
     connection.query('DELETE FROM clientes WHERE id = ?', id, (err, result) => {// Ejecuta una consulta DELETE para eliminar un proveedor de la tabla 'proveedor_vehiculo' donde el ID coincide con el proporcionado.
@@ -442,7 +442,7 @@ app.post('/api/guardar_proveedorimpo', (req, res) => { // Define una ruta POST e
 });//Fin del POST
 
 //Api guardar cliente vehiculo POST
-app.post('/api/guardar_clienteimpo', (req, res) => { // Define una ruta POST en '/api/guardar_proveedorimpo' para manejar solicitudes de creación de proveedores de vehículos.
+app.post('/api/guardar_clientesimpo', (req, res) => { // Define una ruta POST en '/api/guardar_proveedorimpo' para manejar solicitudes de creación de proveedores de vehículos.
     const { id, nombre, correo, telefono, direccion, dpi, comentarios  } = req.body; // Extrae los datos del proveedor del cuerpo de la solicitud.
     const params = [[id, nombre, correo, telefono, direccion, dpi, comentarios  ]]; // Prepara los parámetros para la consulta SQL.
     var connection = mysql.createConnection(credentials); // Crea una nueva conexión a la base de datos utilizando las credenciales.
@@ -574,7 +574,7 @@ app.post('/api/editar_proveedorimpo', (req, res) => {  // Define una ruta POST e
 
 
 //Api editar cliente vehiculos POST
-app.post('/api/editar_clienteimpo', (req, res) => {  // Define una ruta POST en '/api/editar_proveedorimpo' para editar los datos de un proveedor de vehículos.
+app.post('/api/editar_clientesimpo', (req, res) => {  // Define una ruta POST en '/api/editar_proveedorimpo' para editar los datos de un proveedor de vehículos.
     const { id, nombre, correo, telefono, direccion, dpi, comentarios } = req.body; // Extrae los datos del cuerpo de la solicitud (id, nombre, correo, teléfono, dirección).
     const params = [ nombre, correo, telefono, direccion, dpi, comentarios, id]; // Prepara los parámetros que se usarán para la consulta SQL. Los valores extraídos de la solicitud reemplazarán los marcadores en la consulta.
     var connection = mysql.createConnection(credentials); // Crea una conexión a la base de datos usando las credenciales configuradas.
@@ -858,7 +858,7 @@ app.get('/api/proveedoresimpo', (req, res) => {// Define una ruta GET en la API 
 });//Fin de la ruta GET
 
 
-//Api clientes vehiculos GET
+//Api Clientes vehiculos GET
 app.get('/api/clientesv', (req, res) => {// Define una ruta GET en la API para obtener información sobre proveedores de vehiculos
     var connection = mysql.createConnection(credentials);// Crea una conexión a la base de datos MySQL utilizando las credenciales proporcionadas
    // Define la consulta SQL que seleccionará los detalles de los proveedores
