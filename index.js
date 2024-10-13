@@ -308,8 +308,8 @@ app.post('/api/guardar', async (req, res) => { // Define una ruta POST en '/api/
 
 //API guardar producto POST
 app.post('/api/guardar_product', (req, res) => {// Define una ruta POST en '/api/guardar_product' para manejar solicitudes de creación o actualización de productos.
-    const { id, nombre, descripcion, id_proveedor, fecha_compra, numero_factura, cantidad, precio } = req.body;// Extrae los datos del producto del cuerpo de la solicitud.
-    const params = [nombre, descripcion, id_proveedor, fecha_compra, numero_factura, Number(cantidad), precio];// Prepara los parámetros para la consulta SQL.
+    const { id, nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio } = req.body;// Extrae los datos del producto del cuerpo de la solicitud.
+    const params = [nombre, descripcion, id_proveedor, fecha_compra,  Number(cantidad), precio];// Prepara los parámetros para la consulta SQL.
     var connection = mysql.createConnection(credentials);// Crea una nueva conexión a la base de datos utilizando las credenciales.
     // Verificar si el producto ya existe por su ID
     connection.query('SELECT * FROM productos_car_wash WHERE id = ? LIMIT 1', [id], (err, results) => {// Realiza una consulta para buscar el producto por su ID.
@@ -330,7 +330,7 @@ app.post('/api/guardar_product', (req, res) => {// Define una ruta POST en '/api
                 });//Fin del connection query
             } else { // Si no se encuentra un producto existente...
                 // Producto no encontrado, crear nuevo
-                connection.query('INSERT INTO productos_car_wash (nombre, descripcion, id_proveedor, fecha_compra, numero_factura, cantidad, precio) VALUES ?', [[params]], (insertErr) => { // Realiza la inserción de un nuevo producto.
+                connection.query('INSERT INTO productos_car_wash (nombre, descripcion, id_proveedor, fecha_compra,  cantidad, precio) VALUES ?', [[params]], (insertErr) => { // Realiza la inserción de un nuevo producto.
                     if (insertErr) { // Si hay un error durante la inserción...
                         res.status(500).send(insertErr);// Envía una respuesta con estado 500 y el error.
                     } else {// Si la inserción se ejecuta correctamente...
@@ -485,11 +485,11 @@ app.post('/api/editar', async (req, res) => {// Define una ruta POST en '/api/ed
 
 //Api editar producto POST
 app.post('/api/editar_product', (req, res) => { // Define una ruta POST en '/api/editar_product' para editar un producto existente.
-    const { id, nombre, descripcion, id_proveedor, fecha_compra, numero_factura, cantidad, precio, } = req.body;  // Extrae los datos enviados en la solicitud.
-    const params = [ nombre, descripcion, id_proveedor, fecha_compra, numero_factura, cantidad, precio, id]; // Prepara los parámetros para la consulta SQL, incluyendo la ID del producto.
+    const { id, nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio, } = req.body;  // Extrae los datos enviados en la solicitud.
+    const params = [ nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio, id]; // Prepara los parámetros para la consulta SQL, incluyendo la ID del producto.
     var connection = mysql.createConnection(credentials);// Crea una nueva conexión a la base de datos utilizando las credenciales.
     // Realiza la actualización del producto en la base de datos.
-    connection.query('UPDATE productos_car_wash SET nombre = ?, descripcion = ?, id_proveedor = ?,  fecha_compra = ?, numero_factura = ?, cantidad = ?, precio = ?    WHERE id = ?', params, (err, result) => {// Ejecuta una consulta SQL para actualizar el producto con los nuevos datos.
+    connection.query('UPDATE productos_car_wash SET nombre = ?, descripcion = ?, id_proveedor = ?,  fecha_compra = ?,  cantidad = ?, precio = ?    WHERE id = ?', params, (err, result) => {// Ejecuta una consulta SQL para actualizar el producto con los nuevos datos.
         if (err) {// Si ocurre un error durante la actualización...
             res.status(500).send(err);// Envía una respuesta de error con estado 500
         } else {// Si la actualización se ejecuta correctamente...
@@ -616,7 +616,7 @@ app.get('/api/productos', (req, res) => { // Define una ruta GET en '/api/produc
     u.precio, 
     u.id_proveedor,
     u.fecha_compra,
-    u.numero_factura,
+    
     u.subtotal,
     r.nombre AS nombre_proveedor
             FROM 
