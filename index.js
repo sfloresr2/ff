@@ -364,7 +364,7 @@ app.post('/api/guardar_vehic', (req, res) => { // Define una ruta POST en '/api/
 
 //API CREAR VENTA vehiculos
 app.post('/api/guardar_vehicv', (req, res) => { 
-    const { id, codigo, placa, tipo_vehiculo, marca, modelo, color, uso, linea, chasis, serie, numero_asientos, ejes, numero_vin, motor, cilindros, c_c, id_proveedor_vehiculo, fecha_venta, precio_compra, precio_venta  } = req.body;
+    const { id, codigo, placa, tipo_vehiculo, marca, modelo, color, uso, linea, chasis, serie, numero_asientos, ejes, numero_vin, motor, cilindros, c_c, id_clientes, fecha_venta, precio_compra, precio_venta  } = req.body;
     
     var connection = mysql.createConnection(credentials);
 
@@ -383,8 +383,8 @@ app.post('/api/guardar_vehicv', (req, res) => {
                     } else {
                         console.log('Vehículo eliminado de vehiculos_predio');
                         // Insertar el vehículo en 'vehiculos_vendidos' después de eliminarlo de 'vehiculos_predio'
-                        const params = [[id, codigo, placa, tipo_vehiculo, marca, modelo, color, uso, linea, chasis, serie, numero_asientos, ejes, numero_vin, motor, cilindros, c_c, id_proveedor_vehiculo, fecha_venta, precio_compra, precio_venta]];
-                        connection.query('INSERT INTO vehiculos_vendidos (id, codigo, placa, tipo_vehiculo, marca, modelo, color, uso, linea, chasis, serie, numero_asientos, ejes, numero_vin, motor, cilindros, c_c, id_proveedor_vehiculo, fecha_venta, precio_compra, precio_venta) VALUES ?', [params], (insertErr, result) => {
+                        const params = [[id, codigo, placa, tipo_vehiculo, marca, modelo, color, uso, linea, chasis, serie, numero_asientos, ejes, numero_vin, motor, cilindros, c_c, id_clientes, fecha_venta, precio_compra, precio_venta]];
+                        connection.query('INSERT INTO vehiculos_vendidos (id, codigo, placa, tipo_vehiculo, marca, modelo, color, uso, linea, chasis, serie, numero_asientos, ejes, numero_vin, motor, cilindros, c_c, id_clientes, fecha_venta, precio_compra, precio_venta) VALUES ?', [params], (insertErr, result) => {
                             if (insertErr) {
                                 res.status(500).send(insertErr);  // En caso de error al insertar
                             } else {
