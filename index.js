@@ -760,15 +760,15 @@ app.get('/api/vehiculosventas', (req, res) => { // Define una ruta GET en la API
     u.motor,
     u.cilindros,
     u.c_c,
-    u.id_proveedor_vehiculo,
+    u.id_clientes,
     u.fecha_venta,
     u.precio_compra,
     u.precio_venta,
-    r.nombre AS nombre_proveedor_vehiculo
+    r.nombre AS nombre_clientes
             FROM 
                 vehiculos_vendidos u 
             JOIN 
-                proveedor_vehiculo r ON u.id_proveedor_vehiculo = r.id;
+                clientes r ON u.id_clientes = r.id;
     `;
     connection.query(query, (err, rows) => { // Ejecuta la consulta SQL en la base de datos
         if (err) {// Verifica si hay un error al ejecutar la consulta
