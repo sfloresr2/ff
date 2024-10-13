@@ -252,6 +252,22 @@ app.post('/api/eliminar_proveedorp', (req, res) => { // Define una ruta POST en 
 })//Fin del POST
 
 
+//API eliminar factura Car Wash
+app.post('/api/eliminar_facturasp', (req, res) => { // Define una ruta POST en '/api/eliminar_proveedorp' para manejar solicitudes de eliminación de proveedores.
+    const { id } = req.body// Extrae el ID del proveedor del cuerpo de la solicitud.
+    var connection = mysql.createConnection(credentials)// Crea una nueva conexión a la base de datos utilizando las credenciales.
+    connection.query('DELETE FROM facturas WHERE id = ?', id, (err, result) => {// Ejecuta una consulta DELETE para eliminar un proveedor de la tabla 'proveedor' donde el ID coincide con el proporcionado.
+        if (err) {// Si hay un error durante la consulta...
+            res.status(500).send(err)// Envía una respuesta con estado 500 y el error.
+        } else {// Si la consulta se ejecuta correctamente...
+            res.status(200).send({ "status": "success", "message": "El factura Ha Sido Eliminado" })// Envía una respuesta de éxito con un mensaje.
+        }//Fin del else
+    })//Fin connection query
+    connection.end()// Cierra la conexión a la base de datos para liberar recursos.
+})//Fin del POST
+
+
+
 
 //API eliminar proveedor Vehiculos POST
 app.post('/api/eliminar_proveedorimpo', (req, res) => { // Define una ruta POST en '/api/eliminar_proveedorimpo' para manejar solicitudes de eliminación de proveedores de importación.
@@ -423,6 +439,22 @@ app.post('/api/guardar_proveedorp', (req, res) => {// Define una ruta POST en '/
     connection.end();// Cierra la conexión a la base de datos para liberar recursos.
 });//Fin del POST
 
+//Api guardar factura producto POST
+app.post('/api/guardar_facturasp', (req, res) => {// Define una ruta POST en '/api/guardar_proveedorp' para manejar solicitudes de creación de proveedores.
+    const { id, id_proveedor, numero_factura, fecha_factura, producto, precio, cantidad  } = req.body;// Extrae los datos del proveedor del cuerpo de la solicitud.
+    const params = [[id, id_proveedor, numero_factura, fecha_factura, producto, precio, cantidad   ]];// Prepara los parámetros para la consulta SQL.
+    var connection = mysql.createConnection(credentials);// Crea una nueva conexión a la base de datos utilizando las credenciales.
+    // Inserta un nuevo proveedor en la tabla 'proveedor'
+    connection.query('INSERT INTO facturas (id, id_proveedor, numero_factura, fecha_factura, producto, precio, cantidad   ) VALUES ?', [params], (err, result) => {// Realiza la inserción de un nuevo proveedor.
+        if (err) {// Si hay un error durante la inserción...
+            res.status(500).send(err);// Envía una respuesta con estado 500 y el error.
+        } else {// Si la inserción se ejecuta correctamente...
+            res.status(200).send({ "status": "success", "message": "Factura creado" });// Envía una respuesta de éxito con un mensaje.
+        }//Fin del else
+    });//Fin del connection query
+    connection.end();// Cierra la conexión a la base de datos para liberar recursos.
+});//Fin del POST
+
 
 
 //Api guardar proveedor vehiculo POST
@@ -556,6 +588,24 @@ app.post('/api/editar_proveedorp', (req, res) => { // Define una ruta POST en '/
 
 
 
+//Api editar factura productos POST
+app.post('/api/editar_facturasp', (req, res) => { // Define una ruta POST en '/api/editar_proveedorp' para editar los datos de un proveedor existente.
+    const { id, id_proveedor, numero_factura, fecha_factura, producto, precio, cantidad } = req.body; // Extrae los datos enviados en la solicitud POST.
+    const params = [ id_proveedor, numero_factura, fecha_factura, producto, precio, cantidad, id];// Prepara los parámetros para la consulta SQL, donde los valores extraídos de la solicitud reemplazarán los marcadores en la consulta.
+    var connection = mysql.createConnection(credentials);// Crea una conexión a la base de datos utilizando las credenciales configuradas.
+    // Ejecuta una consulta SQL para actualizar los datos del proveedor en la tabla 'proveedor' de la base de datos.
+    connection.query('UPDATE facturas SET id_proveedor = ?, numero_factura = ?, fecha_factura = ?, producto = ?, precio = ?, cantidad = ?     WHERE id = ?', params, (err, result) => {
+        if (err) { // Si ocurre un error durante la ejecución de la consulta SQL...
+            res.status(500).send(err);// Envía una respuesta de error con código de estado 500.
+        } else { // Si la actualización se ejecuta correctamente...
+            res.status(200).send({ "status": "success", "message": "factura editado" }); // Envía una respuesta de éxito con un mensaje indicando que el proveedor ha sido editado.
+        }//Fin del else
+    });//Fin del connection query
+    connection.end(); // Cierra la conexión a la base de datos una vez que se ha completado la consulta.
+});//Fin del POST
+
+
+
 //Api editar proveedor vehiculos POST
 app.post('/api/editar_proveedorimpo', (req, res) => {  // Define una ruta POST en '/api/editar_proveedorimpo' para editar los datos de un proveedor de vehículos.
     const { id, nombre, correo, telefono, direccion, } = req.body; // Extrae los datos del cuerpo de la solicitud (id, nombre, correo, teléfono, dirección).
@@ -633,6 +683,63 @@ app.get('/api/productos', (req, res) => { // Define una ruta GET en '/api/produc
         connection.end();// Cierra la conexión a la base de datos después de que se completa la consulta.
     });// Fin del connection.query.
 });//Fin de la ruta GET 
+
+
+
+
+
+//Api FACTURAS GET
+app.get('/api/facturasp', (req, res) => { // Define una ruta GET en '/api/productos' para obtener la lista de productos.
+    var connection = mysql.createConnection(credentials); // Crea una conexión a la base de datos utilizando las credenciales definidas.
+    // Definimos una consulta SQL multi-tabla que selecciona información sobre productos y proveedores.
+    // Selecciona el ID del producto.
+    // Selecciona el nombre del producto.
+    // Selecciona la descripción del producto.
+    // Selecciona la cantidad del producto en stock.
+    // Selecciona el precio unitario del producto.
+    // Selecciona el ID del proveedor del producto.
+    // Selecciona la fecha de compra del producto.
+    // Selecciona el número de factura asociado a la compra del producto.
+    // Selecciona el subtotal del producto (cantidad * precio).
+    // Selecciona el nombre del proveedor desde la tabla 'proveedor'.
+    // Tabla principal, 'productos_car_wash'.
+    // Realiza un JOIN con la tabla 'proveedor' usando el ID del proveedor.
+    const query = `
+        SELECT 
+    u.id, 
+    u.id_proveedor, 
+    u.numero_factura,
+    u.fecha_factura,  
+    u.producto, 
+    u.precio,
+    u.cantidad,
+    
+    u.total,
+    r.nombre AS nombre_proveedor
+            FROM 
+                facturas u 
+            JOIN 
+                proveedor r ON u.id_proveedor = r.id;
+    `;
+    connection.query(query, (err, rows) => {  // Ejecuta la consulta SQL definida previamente.
+        if (err) { // Si ocurre un error al ejecutar la consulta...
+            res.status(500).send(err); // Envía una respuesta de error con código 500 y el error.
+        } else { // Si la consulta se ejecuta correctamente...
+            res.status(200).send(rows); // Envía la lista de productos obtenidos como respuesta con código 200 (éxito).
+        }//Fin del else
+        connection.end();// Cierra la conexión a la base de datos después de que se completa la consulta.
+    });// Fin del connection.query.
+});//Fin de la ruta GET 
+
+
+
+
+
+
+
+
+
+
 
 
 
