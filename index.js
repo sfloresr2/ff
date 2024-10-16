@@ -204,6 +204,23 @@ app.post('/api/eliminar_product', (req, res) => { // Define una ruta POST en '/a
 
 
 
+
+//API eliminar productos salidas POST
+app.post('/api/eliminar_products', (req, res) => { // Define una ruta POST en '/api/eliminar_product' para manejar solicitudes de eliminación de productos.
+    const { id } = req.body // Extrae el ID del producto del cuerpo de la solicitud.
+    var connection = mysql.createConnection(credentials) // Crea una nueva conexión a la base de datos utilizando las credenciales.
+    connection.query('DELETE FROM salida_productos WHERE id = ?', id, (err, result) => {  // Ejecuta una consulta DELETE para eliminar un producto de la tabla 'productos_car_wash' donde el ID coincide con el proporcionado.
+        if (err) { // Si hay un error durante la consulta...
+            res.status(500).send(err)// Envía una respuesta con estado 500 y el error.
+        } else {// Si la consulta se ejecuta correctamente...
+            res.status(200).send({ "status": "success", "message": "El Producto Ha Sido Eliminado" })// Envía una respuesta de éxito con un mensaje.
+        }//Fin del else
+    })//Fin del connection query
+    connection.end()// Cierra la conexión a la base de datos para liberar recursos.
+})//Fin del POST
+
+
+
 //API eliminar vehiculos POST
 app.post('/api/eliminar_vehic', (req, res) => { // Define una ruta POST en '/api/eliminar_vehic' para manejar solicitudes de eliminación de vehículos.
     const { id } = req.body// Extrae el ID del vehículo del cuerpo de la solicitud.
@@ -334,44 +351,118 @@ app.post('/api/guardar', async (req, res) => { // Define una ruta POST en '/api/
     }//Fin del Catch
 })//Fin del POST
 
+app.post('/api/guardar_product', (req, res) => {
+    const { codigo, nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio } = req.body; // Usar "codigo" en lugar de "id"
+    const params = [nombre, descripcion, id_proveedor, fecha_compra, Number(cantidad), precio];
+    var connection = mysql.createConnection(credentials);
 
-
-//API guardar producto POST
-app.post('/api/guardar_product', (req, res) => {// Define una ruta POST en '/api/guardar_product' para manejar solicitudes de creación o actualización de productos.
-    const { id, nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio } = req.body;// Extrae los datos del producto del cuerpo de la solicitud.
-    const params = [nombre, descripcion, id_proveedor, fecha_compra,  Number(cantidad), precio];// Prepara los parámetros para la consulta SQL.
-    var connection = mysql.createConnection(credentials);// Crea una nueva conexión a la base de datos utilizando las credenciales.
-    // Verificar si el producto ya existe por su ID
-    connection.query('SELECT * FROM productos_car_wash WHERE id = ? LIMIT 1', [id], (err, results) => {// Realiza una consulta para buscar el producto por su ID.
-        if (err) {// Si hay un error durante la consulta...
-            res.status(500).send(err);// Envía una respuesta con estado 500 y el error
-            connection.end();// Cierra la conexión a la base de datos para liberar recursos.
-        } else {// Si la consulta se ejecuta correctamente...
-            if (results.length > 0) { // Si se encuentra un producto existente...
-                 // Producto encontrado, actualizar cantidad
-                const nuevo_stock = results[0].cantidad + Number(cantidad);// Calcula el nuevo stock sumando la cantidad.
-                connection.query('UPDATE productos_car_wash SET cantidad = ? WHERE id = ?', [nuevo_stock, id], (updateErr) => {// Realiza la actualización del producto.
-                    if (updateErr) {// Si hay un error durante la actualización...
-                        res.status(500).send(updateErr);// Envía una respuesta con estado 500 y el error.
-                    } else {// Si la actualización se ejecuta correctamente...
-                        res.status(200).send({ "status": "success", "message": "Cantidad actualizada" });// Envía una respuesta de éxito con un mensaje.
-                    }//Fin del else
-                    connection.end();// Cierra la conexión a la base de datos para liberar recursos.
-                });//Fin del connection query
-            } else { // Si no se encuentra un producto existente...
+    // Verificar si el producto ya existe por su código
+    connection.query('SELECT * FROM productos_car_wash WHERE codigo = ? LIMIT 1', [codigo], (err, results) => {
+        if (err) {
+            res.status(500).send(err);
+            connection.end();
+        } else {
+            if (results.length > 0) {
+                // Producto encontrado, actualizar cantidad
+                const nuevo_stock = results[0].cantidad + Number(cantidad);
+                connection.query('UPDATE productos_car_wash SET cantidad = ? WHERE codigo = ?', [nuevo_stock, codigo], (updateErr) => {
+                    if (updateErr) {
+                        res.status(500).send(updateErr);
+                    } else {
+                        res.status(200).send({ "status": "success", "message": "Cantidad actualizada" });
+                    }
+                    connection.end();
+                });
+            } else {
                 // Producto no encontrado, crear nuevo
-                connection.query('INSERT INTO productos_car_wash (nombre, descripcion, id_proveedor, fecha_compra,  cantidad, precio) VALUES ?', [[params]], (insertErr) => { // Realiza la inserción de un nuevo producto.
-                    if (insertErr) { // Si hay un error durante la inserción...
-                        res.status(500).send(insertErr);// Envía una respuesta con estado 500 y el error.
-                    } else {// Si la inserción se ejecuta correctamente...
-                        res.status(200).send({ "status": "success", "message": "Producto creado" });// Envía una respuesta de éxito con un mensaje.
-                    }//Fin del else
-                    connection.end();// Cierra la conexión a la base de datos para liberar recursos.
-                });//Fin del connectionquery
-            }//Fin del else
-        }//Fin del else
-    });//Fin del connection query
-});//Fin del POST
+                connection.query('INSERT INTO productos_car_wash (codigo, nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio) VALUES (?, ?, ?, ?, ?, ?, ?)', [codigo, ...params], (insertErr) => {
+                    if (insertErr) {
+                        res.status(500).send(insertErr);
+                    } else {
+                        res.status(200).send({ "status": "success", "message": "Producto creado" });
+                    }
+                    connection.end();
+                });
+            }
+        }
+    });
+});
+
+
+
+// API para guardar producto o mover a salida_productos con control de cantidades
+app.post('/api/guardar_products', (req, res) => {
+    const { codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio } = req.body;
+    const params = [codigo, nombre, descripcion, id_proveedor, fecha_salida, Number(cantidad), precio];
+    var connection = mysql.createConnection(credentials);
+
+    // Verificar si el producto ya existe por su código
+    connection.query('SELECT * FROM productos_car_wash WHERE codigo = ? LIMIT 1', [codigo], (err, results) => {
+        if (err) {
+            res.status(500).send(err);
+            connection.end();
+        } else {
+            if (results.length > 0) {
+                const stock_actual = results[0].cantidad;
+
+                if (cantidad < stock_actual) {
+                    // Cantidad ingresada es menor, restar del stock actual
+                    const nuevo_stock = stock_actual - Number(cantidad);
+                    
+                    connection.query('UPDATE productos_car_wash SET cantidad = ? WHERE codigo = ?', [nuevo_stock, codigo], (updateErr) => {
+                        if (updateErr) {
+                            res.status(500).send(updateErr);
+                        } else {
+                            // Insertar en salida_productos solo la cantidad ingresada
+                            connection.query('INSERT INTO salida_productos (codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio) VALUES ?', [[params]], (insertErr) => {
+                                if (insertErr) {
+                                    res.status(500).send(insertErr);
+                                } else {
+                                    res.status(200).send({ "status": "success", "message": "Producto actualizado en productos_car_wash y trasladado a salida_productos" });
+                                }
+                                connection.end();
+                            });
+                        }
+                    });
+                } else if (cantidad === stock_actual) {
+                    // Cantidad ingresada es igual al stock, eliminar el producto de productos_car_wash
+                    connection.query('DELETE FROM productos_car_wash WHERE codigo = ?', [codigo], (deleteErr) => {
+                        if (deleteErr) {
+                            res.status(500).send(deleteErr);
+                            connection.end();
+                        } else {
+                            // Insertar en salida_productos
+                            connection.query('INSERT INTO salida_productos (codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio) VALUES ?', [[params]], (insertErr) => {
+                                if (insertErr) {
+                                    res.status(500).send(insertErr);
+                                } else {
+                                    res.status(200).send({ "status": "success", "message": "Producto trasladado completamente a salida_productos" });
+                                }
+                                connection.end();
+                            });
+                        }
+                    });
+                } else {
+                    // Cantidad ingresada es mayor que el stock disponible
+                    res.status(400).send({ "status": "error", "message": "Cantidad ingresada excede el stock disponible" });
+                    connection.end();
+                }
+            } else {
+                // Producto no encontrado
+                res.status(404).send({ "status": "error", "message": "Producto no encontrado en productos_car_wash" });
+                connection.end();
+            }
+        }
+    });
+});
+
+
+
+
+
+
+
+
 
 
 
@@ -550,11 +641,11 @@ app.post('/api/editar', async (req, res) => {// Define una ruta POST en '/api/ed
 
 //Api editar producto POST
 app.post('/api/editar_product', (req, res) => { // Define una ruta POST en '/api/editar_product' para editar un producto existente.
-    const { id, nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio, } = req.body;  // Extrae los datos enviados en la solicitud.
-    const params = [ nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio, id]; // Prepara los parámetros para la consulta SQL, incluyendo la ID del producto.
+    const { id, codigo, nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio, } = req.body;  // Extrae los datos enviados en la solicitud.
+    const params = [ codigo, nombre, descripcion, id_proveedor, fecha_compra, cantidad, precio, id]; // Prepara los parámetros para la consulta SQL, incluyendo la ID del producto.
     var connection = mysql.createConnection(credentials);// Crea una nueva conexión a la base de datos utilizando las credenciales.
     // Realiza la actualización del producto en la base de datos.
-    connection.query('UPDATE productos_car_wash SET nombre = ?, descripcion = ?, id_proveedor = ?,  fecha_compra = ?,  cantidad = ?, precio = ?    WHERE id = ?', params, (err, result) => {// Ejecuta una consulta SQL para actualizar el producto con los nuevos datos.
+    connection.query('UPDATE productos_car_wash SET codigo = ?, nombre = ?, descripcion = ?, id_proveedor = ?,  fecha_compra = ?,  cantidad = ?, precio = ?    WHERE id = ?', params, (err, result) => {// Ejecuta una consulta SQL para actualizar el producto con los nuevos datos.
         if (err) {// Si ocurre un error durante la actualización...
             res.status(500).send(err);// Envía una respuesta de error con estado 500
         } else {// Si la actualización se ejecuta correctamente...
@@ -564,6 +655,21 @@ app.post('/api/editar_product', (req, res) => { // Define una ruta POST en '/api
     connection.end();// Cierra la conexión a la base de datos.
 });//Fin del POST
 
+//Api editar salida producto POST
+app.post('/api/editar_products', (req, res) => { // Define una ruta POST en '/api/editar_product' para editar un producto existente.
+    const { id, codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio, } = req.body;  // Extrae los datos enviados en la solicitud.
+    const params = [ codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio, id]; // Prepara los parámetros para la consulta SQL, incluyendo la ID del producto.
+    var connection = mysql.createConnection(credentials);// Crea una nueva conexión a la base de datos utilizando las credenciales.
+    // Realiza la actualización del producto en la base de datos.
+    connection.query('UPDATE salida_productos SET codigo = ?, nombre = ?, descripcion = ?, id_proveedor = ?,  fecha_salida = ?,  cantidad = ?, precio = ?    WHERE id = ?', params, (err, result) => {// Ejecuta una consulta SQL para actualizar el producto con los nuevos datos.
+        if (err) {// Si ocurre un error durante la actualización...
+            res.status(500).send(err);// Envía una respuesta de error con estado 500
+        } else {// Si la actualización se ejecuta correctamente...
+            res.status(200).send({ "status": "success", "message": "Producto editado" });// Envía una respuesta de éxito.
+        }//Fin del else
+    });//Fin del connection query
+    connection.end();// Cierra la conexión a la base de datos.
+});//Fin del POST
 
 
 //Api editar vehiculo POST
@@ -711,6 +817,7 @@ app.get('/api/productos', (req, res) => { // Define una ruta GET en '/api/produc
     const query = `
         SELECT 
     u.id, 
+    u.codigo,
     u.nombre, 
     u.descripcion,
     u.cantidad,  
@@ -722,6 +829,50 @@ app.get('/api/productos', (req, res) => { // Define una ruta GET en '/api/produc
     r.nombre AS nombre_proveedor
             FROM 
                 productos_car_wash u 
+            JOIN 
+                proveedor r ON u.id_proveedor = r.id;
+    `;
+    connection.query(query, (err, rows) => {  // Ejecuta la consulta SQL definida previamente.
+        if (err) { // Si ocurre un error al ejecutar la consulta...
+            res.status(500).send(err); // Envía una respuesta de error con código 500 y el error.
+        } else { // Si la consulta se ejecuta correctamente...
+            res.status(200).send(rows); // Envía la lista de productos obtenidos como respuesta con código 200 (éxito).
+        }//Fin del else
+        connection.end();// Cierra la conexión a la base de datos después de que se completa la consulta.
+    });// Fin del connection.query.
+});//Fin de la ruta GET 
+
+//Api Productos GET
+app.get('/api/productossa', (req, res) => { // Define una ruta GET en '/api/productos' para obtener la lista de productos.
+    var connection = mysql.createConnection(credentials); // Crea una conexión a la base de datos utilizando las credenciales definidas.
+    // Definimos una consulta SQL multi-tabla que selecciona información sobre productos y proveedores.
+    // Selecciona el ID del producto.
+    // Selecciona el nombre del producto.
+    // Selecciona la descripción del producto.
+    // Selecciona la cantidad del producto en stock.
+    // Selecciona el precio unitario del producto.
+    // Selecciona el ID del proveedor del producto.
+    // Selecciona la fecha de compra del producto.
+    // Selecciona el número de factura asociado a la compra del producto.
+    // Selecciona el subtotal del producto (cantidad * precio).
+    // Selecciona el nombre del proveedor desde la tabla 'proveedor'.
+    // Tabla principal, 'productos_car_wash'.
+    // Realiza un JOIN con la tabla 'proveedor' usando el ID del proveedor.
+    const query = `
+        SELECT 
+    u.id, 
+    u.codigo,
+    u.nombre, 
+    u.descripcion,
+    u.cantidad,  
+    u.precio, 
+    u.id_proveedor,
+    u.fecha_salida,
+    
+    
+    r.nombre AS nombre_proveedor
+            FROM 
+                salida_productos u 
             JOIN 
                 proveedor r ON u.id_proveedor = r.id;
     `;
