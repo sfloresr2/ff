@@ -390,10 +390,8 @@ app.post('/api/guardar_product', (req, res) => {
 
 
 
-// API para guardar producto o mover a salida_productos con control de cantidades
 app.post('/api/guardar_products', (req, res) => {
-    const { codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio } = req.body;
-    const params = [codigo, nombre, descripcion, id_proveedor, fecha_salida, Number(cantidad), precio];
+    const { codigo, cantidad, fecha_salida } = req.body;
     var connection = mysql.createConnection(credentials);
 
     // Verificar si el producto ya existe por su código
@@ -403,7 +401,8 @@ app.post('/api/guardar_products', (req, res) => {
             connection.end();
         } else {
             if (results.length > 0) {
-                const stock_actual = results[0].cantidad;
+                const producto = results[0];  // Obtenemos todos los datos del producto
+                const stock_actual = producto.cantidad;
 
                 if (cantidad < stock_actual) {
                     // Cantidad ingresada es menor, restar del stock actual
@@ -414,14 +413,18 @@ app.post('/api/guardar_products', (req, res) => {
                             res.status(500).send(updateErr);
                         } else {
                             // Insertar en salida_productos solo la cantidad ingresada
-                            connection.query('INSERT INTO salida_productos (codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio) VALUES ?', [[params]], (insertErr) => {
-                                if (insertErr) {
-                                    res.status(500).send(insertErr);
-                                } else {
-                                    res.status(200).send({ "status": "success", "message": "Producto actualizado en productos_car_wash y trasladado a salida_productos" });
+                            connection.query(
+                                'INSERT INTO salida_productos (codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+                                [producto.codigo, producto.nombre, producto.descripcion, producto.id_proveedor, fecha_salida, Number(cantidad), producto.precio], 
+                                (insertErr) => {
+                                    if (insertErr) {
+                                        res.status(500).send(insertErr);
+                                    } else {
+                                        res.status(200).send({ "status": "success", "message": "Producto actualizado en productos_car_wash y trasladado a salida_productos" });
+                                    }
+                                    connection.end();
                                 }
-                                connection.end();
-                            });
+                            );
                         }
                     });
                 } else if (cantidad === stock_actual) {
@@ -431,15 +434,19 @@ app.post('/api/guardar_products', (req, res) => {
                             res.status(500).send(deleteErr);
                             connection.end();
                         } else {
-                            // Insertar en salida_productos
-                            connection.query('INSERT INTO salida_productos (codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio) VALUES ?', [[params]], (insertErr) => {
-                                if (insertErr) {
-                                    res.status(500).send(insertErr);
-                                } else {
-                                    res.status(200).send({ "status": "success", "message": "Producto trasladado completamente a salida_productos" });
+                            // Insertar en salida_productos con todos los datos del producto
+                            connection.query(
+                                'INSERT INTO salida_productos (codigo, nombre, descripcion, id_proveedor, fecha_salida, cantidad, precio) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+                                [producto.codigo, producto.nombre, producto.descripcion, producto.id_proveedor, fecha_salida, Number(cantidad), producto.precio], 
+                                (insertErr) => {
+                                    if (insertErr) {
+                                        res.status(500).send(insertErr);
+                                    } else {
+                                        res.status(200).send({ "status": "success", "message": "Producto trasladado completamente a salida_productos" });
+                                    }
+                                    connection.end();
                                 }
-                                connection.end();
-                            });
+                            );
                         }
                     });
                 } else {
@@ -455,6 +462,7 @@ app.post('/api/guardar_products', (req, res) => {
         }
     });
 });
+
 
 
 
