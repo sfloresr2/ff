@@ -89,6 +89,19 @@ app.get('/api/clientesvvv', (req, res) => {// Define una ruta GET en el servidor
 });//Fin del GET
 
 
+// API Servicios Car Wash GET
+app.get('/api/serviciosvvv', (req, res) => {// Define una ruta GET en el servidor en el endpoint '/api/proveedoresvvv'. Cuando un cliente hace una solicitud GET a esta URL, se ejecuta la función de callback.
+    var connection = mysql.createConnection(credentials); // Crea una nueva conexión a la base de datos MySQL usando las credenciales configuradas previamente (host, usuario, contraseña, base de datos).
+    connection.query('SELECT id, nombre, descripcion, precio, tiempo  FROM servicios', (err, rows) => {// Ejecuta una consulta SQL que selecciona las columnas 'id', 'nombre', 'correo', 'telefono' y 'direccion' de la tabla 'proveedor_vehiculo'. Si hay un error, será capturado en 'err', y si la consulta es exitosa, las filas resultantes estarán en 'rows'.
+        if (err) {// Si ocurre un error durante la ejecución de la consulta, entra aquí.
+            res.status(500).send(err); // Envía una respuesta HTTP con el estado 500 (Error interno del servidor) y el mensaje de error.
+        } else { // Si la consulta se ejecuta correctamente y devuelve resultados, entra aquí.
+            res.status(200).send(rows); // Envía una respuesta HTTP con el estado 200 (OK) y las filas ('rows') obtenidas de la consulta.
+        }//Fin del else
+    });//Fin del connection query
+    connection.end();// Cierra la conexión a la base de datos para liberar los recursos utilizados.
+});//Fin del GET
+
 //API login POST
 app.post('/api/login', (req, res) => { // Define una ruta POST en el servidor en el endpoint '/api/login'. Cuando un cliente envía una solicitud POST a esta URL, se ejecuta la función de callback.
     const { usuario, contrasena } = req.body; // Extrae 'usuario' y 'contrasena' del cuerpo de la solicitud (req.body), que contiene los datos enviados desde el cliente.
@@ -210,6 +223,21 @@ app.post('/api/eliminar_products', (req, res) => { // Define una ruta POST en '/
     const { id } = req.body // Extrae el ID del producto del cuerpo de la solicitud.
     var connection = mysql.createConnection(credentials) // Crea una nueva conexión a la base de datos utilizando las credenciales.
     connection.query('DELETE FROM salida_productos WHERE id = ?', id, (err, result) => {  // Ejecuta una consulta DELETE para eliminar un producto de la tabla 'productos_car_wash' donde el ID coincide con el proporcionado.
+        if (err) { // Si hay un error durante la consulta...
+            res.status(500).send(err)// Envía una respuesta con estado 500 y el error.
+        } else {// Si la consulta se ejecuta correctamente...
+            res.status(200).send({ "status": "success", "message": "El Producto Ha Sido Eliminado" })// Envía una respuesta de éxito con un mensaje.
+        }//Fin del else
+    })//Fin del connection query
+    connection.end()// Cierra la conexión a la base de datos para liberar recursos.
+})//Fin del POST
+
+
+//API eliminar servicio vendido POST
+app.post('/api/eliminar_serviciosvvv', (req, res) => { // Define una ruta POST en '/api/eliminar_product' para manejar solicitudes de eliminación de productos.
+    const { id } = req.body // Extrae el ID del producto del cuerpo de la solicitud.
+    var connection = mysql.createConnection(credentials) // Crea una nueva conexión a la base de datos utilizando las credenciales.
+    connection.query('DELETE FROM servicios_vendidos WHERE id = ?', id, (err, result) => {  // Ejecuta una consulta DELETE para eliminar un producto de la tabla 'productos_car_wash' donde el ID coincide con el proporcionado.
         if (err) { // Si hay un error durante la consulta...
             res.status(500).send(err)// Envía una respuesta con estado 500 y el error.
         } else {// Si la consulta se ejecuta correctamente...
@@ -570,6 +598,23 @@ app.post('/api/guardar_serviciosc', (req, res) => {// Define una ruta POST en '/
 });//Fin del POST
 
 
+//Api guardar servicio vendido POST
+app.post('/api/guardar_serviciosvvv', (req, res) => {// Define una ruta POST en '/api/guardar_proveedorp' para manejar solicitudes de creación de proveedores.
+    const { id, id_servicios, fecha_servicio, marca, modelo, color, linea, precio  } = req.body;// Extrae los datos del proveedor del cuerpo de la solicitud.
+    const params = [[id, id_servicios, fecha_servicio, marca, modelo, color, linea, precio  ]];// Prepara los parámetros para la consulta SQL.
+    var connection = mysql.createConnection(credentials);// Crea una nueva conexión a la base de datos utilizando las credenciales.
+    // Inserta un nuevo proveedor en la tabla 'proveedor'
+    connection.query('INSERT INTO servicios_vendidos (id, id_servicios, fecha_servicio, marca, modelo, color, linea, precio  ) VALUES ?', [params], (err, result) => {// Realiza la inserción de un nuevo proveedor.
+        if (err) {// Si hay un error durante la inserción...
+            res.status(500).send(err);// Envía una respuesta con estado 500 y el error.
+        } else {// Si la inserción se ejecuta correctamente...
+            res.status(200).send({ "status": "success", "message": "Servicio vendido" });// Envía una respuesta de éxito con un mensaje.
+        }//Fin del else
+    });//Fin del connection query
+    connection.end();// Cierra la conexión a la base de datos para liberar recursos.
+});//Fin del POST
+
+
 
 //Api guardar factura producto POST
 app.post('/api/guardar_facturasp', (req, res) => {// Define una ruta POST en '/api/guardar_proveedorp' para manejar solicitudes de creación de proveedores.
@@ -741,6 +786,24 @@ app.post('/api/editar_serviciosc', (req, res) => { // Define una ruta POST en '/
     var connection = mysql.createConnection(credentials);// Crea una conexión a la base de datos utilizando las credenciales configuradas.
     // Ejecuta una consulta SQL para actualizar los datos del proveedor en la tabla 'proveedor' de la base de datos.
     connection.query('UPDATE servicios SET nombre = ?, descripcion = ?, precio = ?, tiempo = ?     WHERE id = ?', params, (err, result) => {
+        if (err) { // Si ocurre un error durante la ejecución de la consulta SQL...
+            res.status(500).send(err);// Envía una respuesta de error con código de estado 500.
+        } else { // Si la actualización se ejecuta correctamente...
+            res.status(200).send({ "status": "success", "message": "Servicio editado" }); // Envía una respuesta de éxito con un mensaje indicando que el proveedor ha sido editado.
+        }//Fin del else
+    });//Fin del connection query
+    connection.end(); // Cierra la conexión a la base de datos una vez que se ha completado la consulta.
+});//Fin del POST
+
+
+
+//Api editar proveedor productos POST
+app.post('/api/editar_serviciosvvv', (req, res) => { // Define una ruta POST en '/api/editar_proveedorp' para editar los datos de un proveedor existente.
+    const { id, id_servicios, fecha_servicio, marca, modelo, color, linea, precio } = req.body; // Extrae los datos enviados en la solicitud POST.
+    const params = [ id_servicios, fecha_servicio, marca, modelo, color, linea, precio, id];// Prepara los parámetros para la consulta SQL, donde los valores extraídos de la solicitud reemplazarán los marcadores en la consulta.
+    var connection = mysql.createConnection(credentials);// Crea una conexión a la base de datos utilizando las credenciales configuradas.
+    // Ejecuta una consulta SQL para actualizar los datos del proveedor en la tabla 'proveedor' de la base de datos.
+    connection.query('UPDATE servicios_vendidos SET id_servicios = ?, fecha_servicio = ?, marca = ?, modelo = ?, color = ?, linea = ?, precio = ?     WHERE id = ?', params, (err, result) => {
         if (err) { // Si ocurre un error durante la ejecución de la consulta SQL...
             res.status(500).send(err);// Envía una respuesta de error con código de estado 500.
         } else { // Si la actualización se ejecuta correctamente...
@@ -1099,6 +1162,38 @@ app.get('/api/vehiculosventas', (req, res) => { // Define una ruta GET en la API
 
 
 
+
+
+//Api vehiculos ventas GET
+app.get('/api/servivendidos', (req, res) => { // Define una ruta GET en la API para obtener información sobre vehículos
+    var connection = mysql.createConnection(credentials);// Crea una conexión a la base de datos MySQL utilizando las credenciales proporcionadas 
+    
+    const query = `
+        SELECT 
+    u.id,
+    u.id_servicios,
+    u.fecha_servicio,
+    u.marca, 
+    u.modelo, 
+    u.color,
+    u.linea,
+    u.precio,
+   
+    r.nombre AS nombre_servicios
+            FROM 
+                servicios_vendidos u 
+            JOIN 
+                servicios r ON u.id_servicios = r.id;
+    `;
+    connection.query(query, (err, rows) => { // Ejecuta la consulta SQL en la base de datos
+        if (err) {// Verifica si hay un error al ejecutar la consulta
+            res.status(500).send(err);// Si hay un error, envía un código de estado 500 y el error
+        } else {// Si la consulta fue exitosa
+            res.status(200).send(rows);//envía un código de estado 200 y los resultados
+        }//Fin del else
+        connection.end(); // Cierra la conexión a la base de datos
+    });//Fin del connection query
+});//Fin de la ruta GET
 
 
 
