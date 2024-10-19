@@ -185,6 +185,13 @@ app.get('/api/usuarios', (req, res) => { // Define una ruta GET en el servidor e
 
 
 
+
+
+
+
+
+
+
 //API eliminar Usuarios POST
 app.post('/api/eliminar', (req, res) => {// Define una ruta POST en '/api/eliminar' que maneja solicitudes para eliminar un usuario.
     const { id } = req.body// Extrae el ID del usuario del cuerpo de la solicitud.
@@ -198,6 +205,18 @@ app.post('/api/eliminar', (req, res) => {// Define una ruta POST en '/api/elimin
     })//Fin del connection query
     connection.end() // Cierra la conexión a la base de datos.
 })//Fin del POST
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
