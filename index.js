@@ -102,7 +102,7 @@ app.get('/api/serviciosvvv', (req, res) => {// Define una ruta GET en el servido
     connection.end();// Cierra la conexión a la base de datos para liberar los recursos utilizados.
 });//Fin del GET
 
-//API login POST
+//API login POSTttttt
 app.post('/api/login', (req, res) => { // Define una ruta POST en el servidor en el endpoint '/api/login'. Cuando un cliente envía una solicitud POST a esta URL, se ejecuta la función de callback.
     const { usuario, contrasena } = req.body; // Extrae 'usuario' y 'contrasena' del cuerpo de la solicitud (req.body), que contiene los datos enviados desde el cliente.
     const values = [usuario]; // Almacena el 'usuario' en un array 'values', que será utilizado en la consulta SQL para evitar inyecciones SQL.
@@ -163,14 +163,13 @@ app.get('/api/usuarios', (req, res) => { // Define una ruta GET en el servidor e
     u.nombre,
     u.usuario,  
     u.contrasena,  
-    u.rol,
-    u.estado,
-    r.descripcion AS descripcion
+    
+    u.estado
+    
     
             FROM 
                 usuarios_nuevos u 
-            JOIN 
-                rol r ON u.rol = r.id;
+        
 
     `;
     connection.query(query, (err, rows) => { // Ejecuta la consulta SQL definida anteriormente y maneja el resultado en la función de callback.
@@ -214,25 +213,29 @@ app.post('/api/eliminar', (req, res) => {// Define una ruta POST en '/api/elimin
 
 
 
+app.post('/api/eliminar_product', async (req, res) => {
+    const { id } = req.body;
+    
+    const connection = mysql.createConnection(credentials);
+    connection.query('DELETE FROM productos_compra WHERE id_producto = ?', id, (err1) => {
+        if (err1) {
+            return res.status(500).send(err1);
+        }
+        
+        connection.query('DELETE FROM productos_car_wash WHERE id = ?', id, (err2) => {
+            if (err2) {
+                return res.status(500).send(err2);
+            }
+            res.status(200).send({ "status": "success", "message": "El Producto Ha Sido Eliminado" });
+        });
+    });
+});
 
 
 
 
 
 
-//API eliminar productos POST
-app.post('/api/eliminar_product', (req, res) => { // Define una ruta POST en '/api/eliminar_product' para manejar solicitudes de eliminación de productos.
-    const { id } = req.body // Extrae el ID del producto del cuerpo de la solicitud.
-    var connection = mysql.createConnection(credentials) // Crea una nueva conexión a la base de datos utilizando las credenciales.
-    connection.query('DELETE FROM productos_car_wash WHERE id = ?', id, (err, result) => {  // Ejecuta una consulta DELETE para eliminar un producto de la tabla 'productos_car_wash' donde el ID coincide con el proporcionado.
-        if (err) { // Si hay un error durante la consulta...
-            res.status(500).send(err)// Envía una respuesta con estado 500 y el error.
-        } else {// Si la consulta se ejecuta correctamente...
-            res.status(200).send({ "status": "success", "message": "El Producto Ha Sido Eliminado" })// Envía una respuesta de éxito con un mensaje.
-        }//Fin del else
-    })//Fin del connection query
-    connection.end()// Cierra la conexión a la base de datos para liberar recursos.
-})//Fin del POST
 
 
 
@@ -400,7 +403,7 @@ app.post('/api/guardar', async (req, res) => { // Define una ruta POST en '/api/
 
 
 
-
+//API guardar producto
 app.post('/api/guardar_compra', (req, res) => {
     const { compra, productos } = req.body; // Recibimos los detalles de la compra y los productos
     const { id_proveedor, fecha_compra, total } = compra;
@@ -825,28 +828,33 @@ app.post('/api/guardar_clientesimpo', (req, res) => { // Define una ruta POST en
 
 
 
-//Api editar Usuario POST
-app.post('/api/editar', async (req, res) => {// Define una ruta POST en '/api/editar' para editar un usuario existente.
-    const { id, correo, nombre, usuario, contrasena, rol, estado } = req.body // Extrae los datos enviados en la solicitud.
-    try {// Inicia un bloque try-catch para manejar errores potenciales.
-        const saltRounds = 10 // Define el número de rondas de sal para la encriptación de la contraseña.
-        const hashedPassword = await bcrypt.hash(contrasena, saltRounds) // Encripta la nueva contraseña utilizando bcrypt.
-        const params = [correo, nombre, usuario, hashedPassword, rol, estado, id]// Prepara los parámetros para la consulta SQL, incluyendo la ID del usuario.
-        var connection = mysql.createConnection(credentials)// Crea una nueva conexión a la base de datos utilizando las credenciales
-        // Realiza la actualización del usuario en la base de datos.
-        connection.query('UPDATE usuarios_nuevos set correo = ?, nombre = ?, usuario = ?, contrasena = ?, rol = ?, estado = ? WHERE id = ?', params, (err, result) => {  // Ejecuta una consulta SQL para actualizar el usuario con los nuevos datos.  
-            if (err) {// Si ocurre un error durante la actualización...
-                res.status(500).send(err) // Envía una respuesta de error con estado 500.
-            } else {// Si la actualización se ejecuta correctamente...
-                res.status(200).send({ "status": "success", "message": "El Usuario Ha Sido Editado" })// Envía una respuesta de éxito.
-            }//Fin del else
-        })//Fin del connection query
-        connection.end()// Cierra la conexión a la base de datos.
-    } catch (error) {// Si ocurre un error en la encriptación o el proceso general...
-        res.status(500).send(error.message) // Envía un mensaje de error con estado 500.
-    }//Fin del Catch
-})//Fin del Post
 
+app.post('/api/editar', async (req, res) => {
+    const { id, correo, nombre, usuario, contrasena, rol, estado } = req.body;
+    try {
+        const params = contrasena
+            ? [correo, nombre, usuario, contrasena, rol, estado, id]
+            : [correo, nombre, usuario, rol, estado, id]; // Excluye contraseña si no está presente
+
+        var connection = mysql.createConnection(credentials);
+
+        // Ajusta la consulta SQL según si 'contrasena' está definido
+        const query = contrasena
+            ? 'UPDATE usuarios_nuevos SET correo = ?, nombre = ?, usuario = ?, contrasena = ?, rol = ?, estado = ? WHERE id = ?'
+            : 'UPDATE usuarios_nuevos SET correo = ?, nombre = ?, usuario = ?, rol = ?, estado = ? WHERE id = ?';
+
+        connection.query(query, params, (err, result) => {
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(200).send({ "status": "success", "message": "El Usuario Ha Sido Editado" });
+            }
+        });
+        connection.end();
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
 
 
 //Api editar producto POST
